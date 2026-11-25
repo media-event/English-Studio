@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Studio Lite - Zero API Key Trainer</title>
+    <title>English Studio Lite v2 - Zero API Key Trainer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -26,11 +26,11 @@
         <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center gap-2.5">
                 <div class="bg-white/15 p-2 rounded-lg">
-                    <i class="fa-solid fa-graduation-cap text-xl text-teal-100"></i>
+                    <i class="fa-solid fa-newspaper text-xl text-teal-100"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg tracking-tight leading-none">English Studio Lite</h1>
-                    <span class="text-xs text-teal-200">100% Gratis • Tanpa API Key • Kamus & Audio Real-Time</span>
+                    <h1 class="font-bold text-lg tracking-tight leading-none">English Studio Lite v2</h1>
+                    <span class="text-xs text-teal-200">Zero API Key • News Builder • Blind Cloze Quiz</span>
                 </div>
             </div>
             
@@ -62,34 +62,42 @@
                 </button>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="vocabInput" placeholder="Ketik 1–5 kata bahasa Inggris (pisahkan koma), misal: mitigate, prudent, discrepancy, scrutinize"
-                    class="flex-grow px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition">
-                <button id="fetchBtn" onclick="buildLessonWithoutKey()" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2 shrink-0">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Mulai Latihan</span>
-                </button>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-7">
+                    <input type="text" id="vocabInput" placeholder="Ketik 3–5 kata bahasa Inggris (pisahkan koma), misal: mitigate, prudent, discrepancy, scrutinize"
+                        class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition">
+                </div>
+                <div class="md:col-span-3">
+                    <select id="newsTopicSelect" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-teal-500 outline-none">
+                        <option value="Business & Economy">Topik Berita: Bisnis & Ekonomi</option>
+                        <option value="Global & Current Affairs">Topik Berita: Berita Umum</option>
+                        <option value="Technology & Industry">Topik Berita: Teknologi & Industri</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <button id="fetchBtn" onclick="buildLessonWithoutKey()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Mulai</span>
+                    </button>
+                </div>
             </div>
-            <p class="text-xs text-slate-400 mt-2">
-                Tips: Gunakan kata dasar (<i>root word</i>), misal <b>analyze</b> daripada <i>analyzed</i>, agar kamus menemukan contoh kalimat paling lengkap.
-            </p>
         </section>
 
         <!-- Loading -->
         <div id="loadingBox" class="hidden bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
             <i class="fa-solid fa-circle-notch fa-spin text-2xl text-teal-600"></i>
-            <p class="text-sm font-medium text-slate-700">Mengambil definisi kamus, terjemahan, dan contoh kalimat...</p>
+            <p class="text-sm font-medium text-slate-700">Menyusun berita pendek, kamus kontekstual, dan soal latihan tanpa clue...</p>
         </div>
 
         <!-- Workspace -->
         <div id="workspace" class="hidden space-y-6">
 
-            <!-- Step 2: Dictionary & Translation Cards -->
+            <!-- Step 2: Dictionary & Pronunciation -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                     <h2 class="font-bold text-slate-800 flex items-center gap-2">
                         <span class="bg-teal-100 text-teal-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">2</span>
-                        Kamus Kontekstual & Pelafalan
+                        Kamus & Pelafalan Kata Target
                     </h2>
                     <button onclick="saveAllVocab()" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus"></i> Simpan Semua ke Vocab Bank
@@ -98,86 +106,113 @@
                 <div id="glossaryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </section>
 
-            <!-- Step 3: Listening & Dictation -->
+            <!-- Step 3: Short News Bulletin (Berita Pendek) -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h2 class="font-bold text-slate-800 flex items-center gap-2">
                         <span class="bg-teal-100 text-teal-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">3</span>
-                        Listening & Dictation Lab
+                        Brief News Report (Berita Pendek Terintegrasi)
                     </h2>
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <span>Kalimat <b id="listenIdx">1</b>/<b id="listenTotal">1</b></span>
-                        <button onclick="changePracticeIdx(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button onclick="changePracticeIdx(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300"><i class="fa-solid fa-chevron-right"></i></button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex gap-2">
-                            <button onclick="playCurrentExample(1.0)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                                <i class="fa-solid fa-volume-high"></i> Dengarkan (1.0x)
-                            </button>
-                            <button onclick="playCurrentExample(0.7)" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                                <i class="fa-solid fa-gauge-simple-low"></i> Lambat (0.7x)
-                            </button>
-                        </div>
-                        <button onclick="toggleBlur()" id="blurBtn" class="text-xs text-teal-700 hover:underline font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="playNewsBulletin(1.0)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <i class="fa-solid fa-volume-high"></i> Dengarkan Berita (1.0x)
+                        </button>
+                        <button onclick="playNewsBulletin(0.75)" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <i class="fa-solid fa-gauge-simple-low"></i> Lambat (0.75x)
+                        </button>
+                        <button onclick="stopSpeech()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg">
+                            <i class="fa-solid fa-stop"></i>
                         </button>
                     </div>
-
-                    <p id="practiceSentence" class="text-base md:text-lg font-medium text-slate-800 bg-white p-3.5 rounded-lg border border-slate-200 blur-text revealed"></p>
-                    <p id="practiceSentenceId" class="text-xs text-slate-500 italic"></p>
                 </div>
 
-                <!-- Dictation Input -->
-                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-amber-900"><i class="fa-solid fa-headphones"></i> Uji Pendengaran (Sembunyikan teks di atas lalu ketik ulang):</span>
-                        <button onclick="checkDictation()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Cek Ketikan</button>
+                <!-- News Card -->
+                <div class="bg-slate-900 text-slate-100 rounded-xl p-5 space-y-3 border-l-4 border-amber-400">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                            DAILY BRIEFING • <span id="newsTopicBadge">BUSINESS & ECONOMY</span>
+                        </span>
+                        <button onclick="toggleNewsBlur()" id="newsBlurBtn" class="text-xs text-teal-300 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-eye-slash"></i> Mode Listening (Blur)
+                        </button>
                     </div>
-                    <input type="text" id="dictationInput" placeholder="Ketik kalimat yang Anda dengar..."
-                        class="w-full px-3 py-2 text-sm border border-amber-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-amber-500">
-                    <div id="dictationFeedback" class="hidden text-xs p-2.5 rounded-lg bg-white border border-amber-200"></div>
+                    
+                    <h3 id="newsHeadline" class="text-base md:text-lg font-bold text-white leading-snug"></h3>
+                    <p id="newsBodyEn" class="text-sm md:text-base leading-relaxed text-slate-200 blur-text revealed"></p>
+                    
+                    <div class="pt-3 border-t border-slate-700/80">
+                        <button onclick="toggleNewsTranslation()" class="text-xs text-amber-300 hover:underline font-medium mb-1">
+                            <i class="fa-solid fa-language"></i> Tampilkan / Sembunyikan Terjemahan Berita
+                        </button>
+                        <p id="newsBodyId" class="hidden text-xs text-slate-300 italic leading-relaxed mt-1"></p>
+                    </div>
+                </div>
+
+                <!-- Dictation & Speaking per Sentence from the News -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- Dictation Box -->
+                    <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-900"><i class="fa-solid fa-headphones"></i> Dictation Berita (Kalimat <span id="sentIdxLabel">1</span>/<span id="sentTotalLabel">1</span>)</span>
+                            <div class="flex gap-1">
+                                <button onclick="changeSentIdx(-1)" class="px-2 py-0.5 bg-white border border-amber-300 rounded text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button onclick="playSingleNewsSentence()" class="px-2 py-0.5 bg-amber-600 text-white rounded text-xs"><i class="fa-solid fa-play"></i></button>
+                                <button onclick="changeSentIdx(1)" class="px-2 py-0.5 bg-white border border-amber-300 rounded text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <input type="text" id="dictationInput" placeholder="Ketik kalimat berita yang Anda dengar..."
+                            class="w-full px-3 py-2 text-xs border border-amber-300 rounded-lg bg-white outline-none">
+                        <div class="flex justify-between items-center">
+                            <button onclick="checkDictation()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Cek Ketikan</button>
+                            <span id="dictationScoreBadge" class="text-xs font-bold text-slate-700"></span>
+                        </div>
+                        <p id="dictationReveal" class="hidden text-[11px] text-slate-600 bg-white p-2 rounded border border-amber-200"></p>
+                    </div>
+
+                    <!-- Speaking Box -->
+                    <div class="bg-rose-50/50 border border-rose-200 rounded-xl p-4 space-y-2.5">
+                        <span class="text-xs font-bold text-rose-900 block"><i class="fa-solid fa-microphone-lines"></i> News Anchor Speaking Check</span>
+                        <p id="speakingTargetPreview" class="text-xs text-slate-700 bg-white p-2 rounded border border-rose-100 font-medium"></p>
+                        <div class="flex items-center gap-2">
+                            <button id="micBtn" onclick="startSpeakingCheck()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                                <i class="fa-solid fa-microphone"></i> <span id="micBtnText">Baca Kalimat Ini</span>
+                            </button>
+                            <span id="speakBadge" class="text-xs font-bold"></span>
+                        </div>
+                        <p id="speakTranscript" class="hidden text-[11px] text-slate-600 italic"></p>
+                    </div>
                 </div>
             </section>
 
-            <!-- Step 4: Speaking & Pronunciation -->
+            <!-- Step 4: Blind Cloze Quiz (Soal Tanpa Clue Terjemahan Kata Target) -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <span class="bg-teal-100 text-teal-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">4</span>
-                        Speaking & Pronunciation Check
-                    </h2>
-                    <span class="text-xs text-slate-400">Gunakan tombol navigasi di Step 3 untuk mengganti kalimat</span>
+                    <div>
+                        <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                            <span class="bg-teal-100 text-teal-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">4</span>
+                            Contextual Fill-in-the-Blank (Tanpa Clue Arti Kata)
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Lengkapi kalimat baru di bawah ini menggunakan kata yang tepat dari <b>Word Bank Acak</b> (termasuk pengecoh). Tidak ada petunjuk terjemahan kata target.
+                        </p>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <button id="micBtn" onclick="startSpeakingCheck()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition">
-                        <i class="fa-solid fa-microphone"></i>
-                        <span id="micBtnText">Ucapkan Kalimat di Atas</span>
-                    </button>
-                    <div id="speakBadge" class="hidden text-xs font-bold px-3 py-1.5 rounded-lg"></div>
+                <!-- Shuffled Word Bank (with Distractors) -->
+                <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3.5">
+                    <span class="text-[11px] font-bold uppercase text-indigo-800 block mb-2">Pilihan Kata Tersedia (Acak + Pengecoh):</span>
+                    <div id="wordBankChips" class="flex flex-wrap gap-2"></div>
                 </div>
 
-                <div id="speakResultBox" class="hidden text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <span class="text-slate-400 font-semibold uppercase block mb-0.5">Suara Anda Terbaca Sebagai:</span>
-                    <p id="speakTranscript" class="text-sm font-medium text-slate-800"></p>
-                </div>
-            </section>
-
-            <!-- Step 5: Active Recall (Fill in the Blank & Word Order) -->
-            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
-                <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                    <span class="bg-teal-100 text-teal-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">5</span>
-                    Active Recall: Lengkapi Kalimat Rumpang (Cloze Test)
-                </h2>
-                <p class="text-xs text-slate-500">Isi bagian kosong dengan kosakata target yang tepat sesuai konteks kalimatnya.</p>
                 <div id="clozeContainer" class="space-y-3"></div>
-                <button onclick="checkClozeAnswers()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition">
-                    Periksa Jawaban Saya
-                </button>
+                
+                <div class="flex items-center gap-3 pt-2">
+                    <button onclick="checkClozeAnswers()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition">
+                        Periksa Semua Jawaban
+                    </button>
+                    <span id="quizTotalScore" class="text-xs font-bold text-slate-700"></span>
+                </div>
             </section>
 
         </div>
@@ -203,36 +238,41 @@
 
     <script>
         let vocabEntries = [];
-        let practiceSentences = [];
-        let currentIdx = 0;
+        let newsSentences = [];
+        let currentNewsIdx = 0;
+        let fullNewsTextEn = "";
+
+        // Distractor pool so the quiz is challenging and doesn't give away answers
+        const DISTRACTOR_WORDS = [
+            "allocate", "benchmark", "volatile", "endorse", "streamline",
+            "comprehensive", "mandatory", "preliminary", "substantial", "fluctuate"
+        ];
 
         window.addEventListener('DOMContentLoaded', updateSavedCount);
 
         function fillSampleWords() {
-            document.getElementById('vocabInput').value = "mitigate, prudent, discrepancy, scrutinize, feasible";
+            document.getElementById('vocabInput').value = "mitigate, prudent, discrepancy, scrutinize";
         }
 
-        // --- Fetch Free Dictionary + Free Translation (Zero API Key) ---
+        // --- Core Builder (Zero API Key) ---
         async function buildLessonWithoutKey() {
             const rawInput = document.getElementById('vocabInput').value.trim();
-            if (!rawInput) return alert("Masukkan minimal 1 kata bahasa Inggris terlebih dahulu.");
+            if (!rawInput) return alert("Masukkan minimal 2–5 kata bahasa Inggris terlebih dahulu.");
 
-            const words = rawInput.split(',').map(w => w.trim().toLowerCase()).filter(Boolean).slice(0, 6);
+            const words = [...new Set(rawInput.split(',').map(w => w.trim().toLowerCase()).filter(Boolean))].slice(0, 5);
             document.getElementById('loadingBox').classList.remove('hidden');
             document.getElementById('workspace').classList.add('hidden');
             document.getElementById('fetchBtn').disabled = true;
 
             vocabEntries = [];
-            practiceSentences = [];
 
             for (const word of words) {
                 try {
-                    // 1. Free Dictionary API
                     const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
                     let pos = "word";
                     let ipa = "";
                     let defEn = "";
-                    let exampleEn = "";
+                    let examples = [];
                     let synonyms = [];
 
                     if (dictRes.ok) {
@@ -246,9 +286,7 @@
                                 defEn = meaning.definitions[0].definition;
                             }
                             for (const d of meaning.definitions || []) {
-                                if (d.example && !exampleEn) {
-                                    exampleEn = d.example;
-                                }
+                                if (d.example) examples.push(d.example);
                             }
                             if (meaning.synonyms?.length) {
                                 synonyms.push(...meaning.synonyms.slice(0, 3));
@@ -256,51 +294,139 @@
                         }
                     }
 
-                    // Fallback sentence if dictionary lacks an example
-                    if (!exampleEn) {
-                        exampleEn = `We need to carefully consider the word ${word} in our daily work.`;
-                    }
-
-                    // 2. Free Translation API (MyMemory - no key needed)
+                    // Translate target word to Indonesian (for Step 2 glossary only)
                     const transWordRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|id`);
                     const transWordData = await transWordRes.json();
                     const meaningId = transWordData?.responseData?.translatedText || "-";
 
-                    const transExRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(exampleEn)}&langpair=en|id`);
-                    const transExData = await transExRes.json();
-                    const exampleId = transExData?.responseData?.translatedText || "";
+                    // Ensure we have distinct sentences for News vs Quiz
+                    const primaryExample = examples[0] || buildContextualNewsSentence(word, pos);
+                    const quizSentence = examples[1] || buildDistinctQuizSentence(word, pos);
 
-                    const item = {
+                    vocabEntries.push({
                         word,
                         pos,
                         ipa,
-                        defEn: defEn || "Contextual English vocabulary.",
+                        defEn: defEn || "Key English vocabulary.",
                         meaningId,
                         synonyms: [...new Set(synonyms)].slice(0, 3),
-                        exampleEn,
-                        exampleId
-                    };
-
-                    vocabEntries.push(item);
-                    practiceSentences.push(item);
+                        newsSentence: primaryExample,
+                        quizSentence: quizSentence
+                    });
 
                 } catch (err) {
-                    console.warn("Error fetching word:", word, err);
+                    console.warn("Error fetching:", word, err);
                 }
             }
 
-            document.getElementById('loadingBox').classList.add('hidden');
-            document.getElementById('fetchBtn').disabled = false;
-
             if (vocabEntries.length === 0) {
-                return alert("Kata tidak ditemukan. Pastikan ejaan bahasa Inggris sudah benar.");
+                document.getElementById('loadingBox').classList.add('hidden');
+                document.getElementById('fetchBtn').disabled = false;
+                return alert("Kata tidak ditemukan. Periksa kembali ejaan bahasa Inggris Anda.");
             }
 
-            renderAll();
+            // Build Short News Report combining all target words
+            await generateShortNewsReport();
+
+            document.getElementById('loadingBox').classList.add('hidden');
+            document.getElementById('fetchBtn').disabled = false;
+            renderWorkspace();
         }
 
-        function renderAll() {
-            // Render Step 2 Cards
+        // Synthesizes a cohesive short news bulletin using the user's vocabulary
+        async function generateShortNewsReport() {
+            const topic = document.getElementById('newsTopicSelect').value;
+            document.getElementById('newsTopicBadge').textContent = topic.toUpperCase();
+
+            const openers = {
+                "Business & Economy": "JAKARTA — Market analysts released a new briefing today regarding corporate risk management and operational stability.",
+                "Global & Current Affairs": "WORLD DESK — International observers highlighted several critical developments shaping policy decisions this week.",
+                "Technology & Industry": "TECH REPORT — Industry leaders are adopting stricter evaluation standards as digital infrastructure expands rapidly."
+            };
+
+            const connectors = [
+                "According to recent findings,",
+                "Furthermore, official reports noted that",
+                "In response to ongoing evaluations,",
+                "Experts also emphasized that",
+                "Consequently,"
+            ];
+
+            const closing = "Stakeholders are expected to review these developments before finalizing next quarter's strategy.";
+
+            const headline = `Briefing: Key Insights on ${vocabEntries.slice(0, 2).map(v => v.word.toUpperCase()).join(' & ')} in ${topic}`;
+            
+            const bodyParts = [openers[topic] || openers["Business & Economy"]];
+            
+            vocabEntries.forEach((item, idx) => {
+                let s = item.newsSentence.trim();
+                if (!s.endsWith('.')) s += '.';
+                // Lowercase first letter if adding a connector
+                const lowerFirst = s.charAt(0).toLowerCase() + s.slice(1);
+                const conn = connectors[idx % connectors.length];
+                bodyParts.push(`${conn} ${lowerFirst}`);
+            });
+
+            bodyParts.push(closing);
+            fullNewsTextEn = bodyParts.join(' ');
+            newsSentences = bodyParts;
+
+            // Translate full news report to Indonesian
+            let fullNewsId = "";
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(fullNewsTextEn.slice(0, 490))}&langpair=en|id`);
+                const data = await res.json();
+                fullNewsId = data?.responseData?.translatedText || "";
+            } catch (e) {
+                fullNewsId = "Terjemahan otomatis sedang tidak tersedia.";
+            }
+
+            document.getElementById('newsHeadline').textContent = headline;
+            
+            // Highlight target words inside the news body
+            let highlightedHtml = fullNewsTextEn;
+            vocabEntries.forEach(item => {
+                const regex = new RegExp(`\\b(${item.word})\\b`, 'gi');
+                highlightedHtml = highlightedHtml.replace(regex, '<span class="bg-amber-400/20 text-amber-300 font-semibold px-1 rounded underline decoration-amber-400/60">$1</span>');
+            });
+
+            document.getElementById('newsBodyEn').innerHTML = highlightedHtml;
+            document.getElementById('newsBodyId').textContent = fullNewsId;
+        }
+
+        // Generates a natural news-style sentence if dictionary lacks an example
+        function buildContextualNewsSentence(word, pos) {
+            if (pos === 'verb') return `Senior officials decided to ${word} the potential impact before the final audit.`;
+            if (pos === 'adjective') return `The committee adopted a ${word} approach when reviewing the annual proposal.`;
+            if (pos === 'adverb') return `The management team responded ${word} to the unexpected market shift.`;
+            return `The latest report identified a major ${word} that required immediate attention from the board.`;
+        }
+
+        // Generates a completely DIFFERENT sentence structure for the Quiz (no translation clues!)
+        function buildDistinctQuizSentence(word, pos) {
+            const templates = {
+                verb: [
+                    `During yesterday's briefing, the director urged all departments to ________ any operational risks early.`,
+                    `To maintain high quality standards, the inspection team must ________ every submitted document.`
+                ],
+                adjective: [
+                    `Investors usually prefer a ________ strategy when facing uncertain economic conditions.`,
+                    `After weeks of testing, engineers confirmed that the new system is ________ for full deployment.`
+                ],
+                noun: [
+                    `The external auditor discovered a noticeable ________ between the two financial records.`,
+                    `Without proper documentation, even a minor ________ can delay the entire approval process.`
+                ],
+                default: [
+                    `In professional communication, understanding how to apply ________ accurately improves clarity.`
+                ]
+            };
+            const pool = templates[pos] || templates.default;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function renderWorkspace() {
+            // Step 2: Glossary
             const grid = document.getElementById('glossaryGrid');
             grid.innerHTML = vocabEntries.map(item => `
                 <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">
@@ -309,71 +435,70 @@
                             <span class="font-bold text-teal-700 text-base">${item.word}</span>
                             <span class="text-xs text-slate-400 ml-1.5">(${item.pos}) ${item.ipa}</span>
                         </div>
-                        <button onclick="speakText('${item.word.replace(/'/g, "\\'")}', 0.9)" class="text-slate-500 hover:text-teal-600 p-1" title="Dengar kata">
+                        <button onclick="speakText('${item.word.replace(/'/g, "\\'")}', 0.9)" class="text-slate-500 hover:text-teal-600 p-1">
                             <i class="fa-solid fa-volume-high text-xs"></i>
                         </button>
                     </div>
                     <p class="text-sm font-bold text-slate-800">Arti: ${item.meaningId}</p>
                     <p class="text-xs text-slate-600">${item.defEn}</p>
                     ${item.synonyms.length ? `<p class="text-[11px] text-teal-700"><b>Sinonim:</b> ${item.synonyms.join(', ')}</p>` : ''}
-                    <div class="pt-1.5 border-t border-slate-200/80 text-xs">
-                        <p class="text-slate-700 font-medium">"${item.exampleEn}"</p>
-                        <p class="text-slate-400 italic mt-0.5">${item.exampleId}</p>
-                    </div>
                 </div>
             `).join('');
 
-            // Setup Step 3 & 4
-            currentIdx = 0;
-            updatePracticeView();
+            // Step 3: News Sentence Practice Setup
+            currentNewsIdx = 0;
+            updateNewsSentencePractice();
 
-            // Setup Step 5 Cloze Test
-            const clozeBox = document.getElementById('clozeContainer');
-            clozeBox.innerHTML = vocabEntries.map((item, idx) => {
+            // Step 4: Blind Cloze Quiz (NO translation clues, shuffled word bank with distractors)
+            const targetWords = vocabEntries.map(v => v.word);
+            const randomDistractors = DISTRACTOR_WORDS
+                .filter(d => !targetWords.includes(d))
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+            
+            const shuffledBank = [...targetWords, ...randomDistractors].sort(() => 0.5 - Math.random());
+            
+            document.getElementById('wordBankChips').innerHTML = shuffledBank.map(w => `
+                <span class="bg-white border border-indigo-300 text-indigo-900 text-xs font-semibold px-3 py-1 rounded-full shadow-2xs">${w}</span>
+            `).join('');
+
+            const clozeContainer = document.getElementById('clozeContainer');
+            // Shuffle question order so it doesn't match the input order!
+            const shuffledQuestions = [...vocabEntries].sort(() => 0.5 - Math.random());
+
+            clozeContainer.innerHTML = shuffledQuestions.map((item, idx) => {
+                // Ensure the target word is blanked out if it came from a dictionary 2nd example
                 const regex = new RegExp(`\\b(${item.word})\\b`, 'gi');
-                const blanked = item.exampleEn.replace(regex, '________');
+                let qText = item.quizSentence.includes('________')
+                    ? item.quizSentence
+                    : item.quizSentence.replace(regex, '________');
+
+                // Fallback if regex didn't match inflected forms
+                if (!qText.includes('________')) {
+                    qText = buildDistinctQuizSentence(item.word, item.pos);
+                }
+
                 return `
-                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                        <p class="text-sm text-slate-800"><b>${idx + 1}.</b> ${blanked}</p>
-                        <p class="text-xs text-slate-400 italic">Petunjuk arti: ${item.meaningId}</p>
-                        <div class="flex items-center gap-2">
-                            <input type="text" id="clozeAns_${idx}" data-answer="${item.word.toLowerCase()}" placeholder="Ketik kata yang hilang..."
-                                class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="text-sm text-slate-800 leading-relaxed"><b>${idx + 1}.</b> ${qText}</p>
+                            <span class="text-[10px] uppercase font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded shrink-0">${item.pos}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500"><b>Context Hint (EN):</b> ${item.defEn}</p>
+                        <div class="flex items-center gap-2 pt-1">
+                            <input type="text" id="clozeAns_${idx}" data-answer="${item.word.toLowerCase()}" placeholder="Ketik pilihan kata yang tepat..."
+                                class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500 w-56">
                             <span id="clozeStatus_${idx}" class="text-xs font-bold"></span>
                         </div>
                     </div>
                 `;
             }).join('');
 
+            document.getElementById('quizTotalScore').textContent = '';
             document.getElementById('workspace').classList.remove('hidden');
         }
 
-        // --- Listening, Dictation & Speaking ---
-        function updatePracticeView() {
-            const current = practiceSentences[currentIdx];
-            document.getElementById('listenIdx').textContent = currentIdx + 1;
-            document.getElementById('listenTotal').textContent = practiceSentences.length;
-            
-            const pEl = document.getElementById('practiceSentence');
-            pEl.textContent = current.exampleEn;
-            pEl.classList.add('revealed');
-            document.getElementById('blurBtn').innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks';
-            document.getElementById('practiceSentenceId').textContent = "Terjemahan: " + current.exampleId;
-
-            document.getElementById('dictationInput').value = '';
-            document.getElementById('dictationFeedback').classList.add('hidden');
-            document.getElementById('speakBadge').classList.add('hidden');
-            document.getElementById('speakResultBox').classList.add('hidden');
-        }
-
-        function changePracticeIdx(delta) {
-            const next = currentIdx + delta;
-            if (next >= 0 && next < practiceSentences.length) {
-                currentIdx = next;
-                updatePracticeView();
-            }
-        }
-
+        // --- Audio, News Blur & Speaking ---
         function speakText(text, rate = 1.0) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(text);
@@ -382,28 +507,60 @@
             window.speechSynthesis.speak(u);
         }
 
-        function playCurrentExample(rate) {
-            speakText(practiceSentences[currentIdx].exampleEn, rate);
+        function playNewsBulletin(rate) {
+            speakText(fullNewsTextEn, rate);
         }
 
-        function toggleBlur() {
-            const el = document.getElementById('practiceSentence');
-            const btn = document.getElementById('blurBtn');
+        function stopSpeech() {
+            window.speechSynthesis.cancel();
+        }
+
+        function toggleNewsBlur() {
+            const el = document.getElementById('newsBodyEn');
+            const btn = document.getElementById('newsBlurBtn');
             if (el.classList.contains('revealed')) {
                 el.classList.remove('revealed');
-                btn.innerHTML = '<i class="fa-solid fa-eye"></i> Tampilkan Teks';
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i> Tampilkan Teks Berita';
             } else {
                 el.classList.add('revealed');
-                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks';
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Mode Listening (Blur)';
             }
         }
 
-        function checkDictation() {
-            const target = practiceSentences[currentIdx].exampleEn;
-            const user = document.getElementById('dictationInput').value.trim();
-            if (!user) return alert("Ketik hasil pendengaran Anda terlebih dahulu.");
+        function toggleNewsTranslation() {
+            document.getElementById('newsBodyId').classList.toggle('hidden');
+        }
 
-            const clean = s => s.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "").split(/\s+/).filter(Boolean);
+        function updateNewsSentencePractice() {
+            const sent = newsSentences[currentNewsIdx] || "";
+            document.getElementById('sentIdxLabel').textContent = currentNewsIdx + 1;
+            document.getElementById('sentTotalLabel').textContent = newsSentences.length;
+            document.getElementById('speakingTargetPreview').textContent = sent;
+            document.getElementById('dictationInput').value = '';
+            document.getElementById('dictationScoreBadge').textContent = '';
+            document.getElementById('dictationReveal').classList.add('hidden');
+            document.getElementById('speakBadge').textContent = '';
+            document.getElementById('speakTranscript').classList.add('hidden');
+        }
+
+        function changeSentIdx(delta) {
+            const next = currentNewsIdx + delta;
+            if (next >= 0 && next < newsSentences.length) {
+                currentNewsIdx = next;
+                updateNewsSentencePractice();
+            }
+        }
+
+        function playSingleNewsSentence() {
+            speakText(newsSentences[currentNewsIdx], 0.9);
+        }
+
+        function checkDictation() {
+            const target = newsSentences[currentNewsIdx];
+            const user = document.getElementById('dictationInput').value.trim();
+            if (!user) return alert("Ketik kalimat berita yang Anda dengar terlebih dahulu.");
+
+            const clean = s => s.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'—]/g, "").split(/\s+/).filter(Boolean);
             const tWords = clean(target);
             const uWords = clean(user);
 
@@ -411,9 +568,10 @@
             uWords.forEach(w => { if (tWords.includes(w)) match++; });
             const score = Math.min(100, Math.round((match / tWords.length) * 100));
 
-            const fb = document.getElementById('dictationFeedback');
-            fb.classList.remove('hidden');
-            fb.innerHTML = `<b>Akurasi: ${score}%</b> (${match}/${tWords.length} kata benar)<br><span class="text-slate-600">Kalimat asli: ${target}</span>`;
+            document.getElementById('dictationScoreBadge').textContent = `Akurasi: ${score}%`;
+            const rev = document.getElementById('dictationReveal');
+            rev.textContent = "Teks Asli: " + target;
+            rev.classList.remove('hidden');
         }
 
         function startSpeakingCheck() {
@@ -427,12 +585,12 @@
 
             rec.onstart = () => {
                 btn.classList.add('pulse-mic');
-                txt.textContent = "Mendengarkan suara Anda...";
+                txt.textContent = "Mendengarkan...";
             };
             rec.onresult = (e) => {
                 const spoken = e.results[0][0].transcript;
-                const target = practiceSentences[currentIdx].exampleEn;
-                const clean = s => s.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "").split(/\s+/).filter(Boolean);
+                const target = newsSentences[currentNewsIdx];
+                const clean = s => s.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'—]/g, "").split(/\s+/).filter(Boolean);
                 const tArr = clean(target);
                 const sArr = clean(spoken);
 
@@ -441,46 +599,47 @@
                 const acc = Math.round((hits / tArr.length) * 100);
 
                 const badge = document.getElementById('speakBadge');
-                badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800');
-                if (acc >= 80) {
-                    badge.classList.add('bg-emerald-100', 'text-emerald-800');
-                    badge.textContent = `Akurasi: ${acc}% (Sangat Baik!)`;
-                } else {
-                    badge.classList.add('bg-amber-100', 'text-amber-800');
-                    badge.textContent = `Akurasi: ${acc}% (Ulangi perlahan)`;
-                }
+                badge.textContent = `Skor: ${acc}%`;
+                badge.className = acc >= 80 ? "text-xs font-bold text-emerald-700" : "text-xs font-bold text-amber-700";
 
-                document.getElementById('speakTranscript').textContent = `"${spoken}"`;
-                document.getElementById('speakResultBox').classList.remove('hidden');
+                const transEl = document.getElementById('speakTranscript');
+                transEl.textContent = `Terbaca: "${spoken}"`;
+                transEl.classList.remove('hidden');
             };
             rec.onend = () => {
                 btn.classList.remove('pulse-mic');
-                txt.textContent = "Ucapkan Kalimat di Atas";
+                txt.textContent = "Baca Kalimat Ini";
             };
             rec.start();
         }
 
-        // --- Cloze Test Check ---
+        // --- Check Blind Cloze Quiz ---
         function checkClozeAnswers() {
-            vocabEntries.forEach((_, idx) => {
+            let correctCount = 0;
+            const total = vocabEntries.length;
+
+            for (let idx = 0; idx < total; idx++) {
                 const input = document.getElementById(`clozeAns_${idx}`);
                 const status = document.getElementById(`clozeStatus_${idx}`);
                 const expected = input.dataset.answer;
                 const actual = input.value.trim().toLowerCase();
 
                 if (actual === expected) {
-                    status.textContent = "✓ Benar";
+                    correctCount++;
+                    status.textContent = "✓ Tepat!";
                     status.className = "text-xs font-bold text-emerald-600";
                 } else {
-                    status.textContent = `✗ Jawaban: ${expected}`;
+                    status.textContent = `✗ Salah (Jawaban: ${expected})`;
                     status.className = "text-xs font-bold text-rose-600";
                 }
-            });
+            }
+
+            document.getElementById('quizTotalScore').textContent = `Skor Akhir: ${correctCount} dari ${total} benar (${Math.round((correctCount/total)*100)}%)`;
         }
 
         // --- Vocab Bank (LocalStorage + CSV) ---
         function getSavedVocab() {
-            return JSON.parse(localStorage.getItem('english_lite_vocab_bank') || '[]');
+            return JSON.parse(localStorage.getItem('english_lite_v2_bank') || '[]');
         }
 
         function saveAllVocab() {
@@ -492,7 +651,7 @@
                     added++;
                 }
             });
-            localStorage.setItem('english_lite_vocab_bank', JSON.stringify(existing));
+            localStorage.setItem('english_lite_v2_bank', JSON.stringify(existing));
             updateSavedCount();
             alert(`${added} kosakata disimpan ke Vocab Bank!`);
         }
@@ -512,7 +671,7 @@
                             <span class="font-bold text-teal-700">${item.word}</span>
                             <span class="text-xs text-slate-400">(${item.pos})</span>
                             <p class="text-xs font-medium text-slate-800 mt-0.5">${item.meaningId}</p>
-                            <p class="text-xs text-slate-500 italic mt-0.5">"${item.exampleEn}"</p>
+                            <p class="text-xs text-slate-500 italic mt-0.5">"${item.newsSentence}"</p>
                         </div>
                         <button onclick="deleteVocab(${idx})" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
                     </div>
@@ -526,7 +685,7 @@
         function deleteVocab(idx) {
             const items = getSavedVocab();
             items.splice(idx, 1);
-            localStorage.setItem('english_lite_vocab_bank', JSON.stringify(items));
+            localStorage.setItem('english_lite_v2_bank', JSON.stringify(items));
             updateSavedCount();
             toggleVocabModal();
             toggleVocabModal();
@@ -535,12 +694,12 @@
         function exportVocabCSV() {
             const items = getSavedVocab();
             if (!items.length) return alert("Vocab Bank masih kosong.");
-            const headers = ["Word", "Part of Speech", "Meaning (ID)", "Example Sentence", "Date Saved"];
-            const rows = items.map(i => [`"${i.word}"`, `"${i.pos}"`, `"${i.meaningId}"`, `"${i.exampleEn.replace(/"/g, '""')}"`, `"${i.savedAt || ''}"`]);
+            const headers = ["Word", "Part of Speech", "Meaning (ID)", "Context Sentence", "Date Saved"];
+            const rows = items.map(i => [`"${i.word}"`, `"${i.pos}"`, `"${i.meaningId}"`, `"${i.newsSentence.replace(/"/g, '""')}"`, `"${i.savedAt || ''}"`]);
             const csv = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csv));
-            link.setAttribute("download", "Vocab_Bank_Lite.csv");
+            link.setAttribute("download", "Vocab_Bank_News_Edition.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
