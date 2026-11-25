@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI English Studio - Personal Language Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .blur-text { filter: blur(6px); user-select: none; transition: filter 0.3s ease; }
+        .blur-text.revealed { filter: none; user-select: auto; }
+        .pulse-mic { animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-white/15 p-2 rounded-lg">
+                    <i class="fa-solid fa-language text-xl text-indigo-200"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight leading-none">AI English Studio</h1>
+                    <span class="text-xs text-indigo-200">Vocab • Listening • Speaking • Writing</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleVocabModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-medium px-3 py-2 rounded-lg border border-indigo-500 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Vocab Bank (<span id="savedCount">0</span>)</span>
+                </button>
+                <button onclick="toggleApiModal()" class="bg-slate-900/40 hover:bg-slate-900/60 text-xs font-medium px-3 py-2 rounded-lg border border-indigo-400/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-key text-amber-300"></i>
+                    <span id="apiStatusText">API Key</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl w-full mx-auto px-4 py-6 flex-grow space-y-6">
+
+        <!-- Step 1: Input Configuration -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">1</span>
+                    Target Kosakata & Konteks Latihan
+                </h2>
+                <button onclick="fillSampleWords()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline">
+                    Isi Contoh Kata
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-6">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
+                        Masukkan 3–5 Kata / Frasa Target (pisahkan dengan koma)
+                    </label>
+                    <input type="text" id="vocabInput" placeholder="Contoh: mitigate, feasibility, discrepancy, scrutinize"
+                        class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Tema / Konteks</label>
+                    <select id="themeSelect" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="Daily Conversation">Daily Conversation</option>
+                        <option value="Corporate, Finance & Credit Analysis">Corporate & Finance</option>
+                        <option value="Workplace & Email Communication">Workplace & Meetings</option>
+                        <option value="Casual Short Story">Casual Short Story</option>
+                        <option value="Travel & Socializing">Travel & Socializing</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Level Kesulitan</label>
+                    <select id="levelSelect" class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="Beginner (A1-A2 - Simple sentences)">Beginner (A1-A2)</option>
+                        <option value="Intermediate (B1-B2 - Natural flow)" selected>Intermediate (B1-B2)</option>
+                        <option value="Advanced / Business Professional (C1)">Business / Pro (C1)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <p id="modelUsedIndicator" class="text-xs text-slate-400">Siap menghasilkan materi latihan personal Anda.</p>
+                <button id="generateBtn" onclick="generateLesson()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2 ml-auto">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Generate Sesi Belajar</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loadingBox" class="hidden bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-indigo-600"></i>
+            <p class="text-sm font-medium text-slate-700">AI sedang menyusun glosarium, cerita kontekstual, dan latihan audio...</p>
+            <p id="loadingSub" class="text-xs text-slate-400">Menghubungkan ke Gemini API...</p>
+        </div>
+
+        <!-- Learning Workspace (Hidden until generated) -->
+        <div id="workspace" class="hidden space-y-6">
+
+            <!-- Step 2: Smart Glossary -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">2</span>
+                        Smart Vocabulary Breakdown
+                    </h2>
+                    <button onclick="saveAllVocab()" id="saveVocabBtn" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Simpan Semua ke Vocab Bank
+                    </button>
+                </div>
+                <div id="glossaryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+            </section>
+
+            <!-- Step 3: Reading, Listening & Dictation -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">3</span>
+                        Reading, Listening & Dictation Mode
+                    </h2>
+
+                    <!-- Audio Controls -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="voiceAccent" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-slate-50">
+                            <option value="en-US">US English</option>
+                            <option value="en-GB">UK English</option>
+                        </select>
+                        <button onclick="speakStory(1.0)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-volume-high"></i> Play (1.0x)
+                        </button>
+                        <button onclick="speakStory(0.75)" class="bg-slate-700 hover:bg-slate-800 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-gauge-simple-low"></i> Slow (0.75x)
+                        </button>
+                        <button onclick="stopSpeech()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-medium px-2.5 py-1.5 rounded-lg transition" title="Stop Audio">
+                            <i class="fa-solid fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Story Box -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 relative">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">AI Contextual Passage</span>
+                        <button onclick="toggleBlurStory()" id="toggleBlurBtn" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks (Mode Listening)
+                        </button>
+                    </div>
+                    <p id="storyText" class="text-base md:text-lg leading-relaxed text-slate-800 blur-text revealed"></p>
+                    <p id="storyTranslation" class="text-xs text-slate-500 mt-3 pt-2.5 border-t border-slate-200 italic"></p>
+                </div>
+
+                <!-- Dictation Exercise -->
+                <div class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-headphones"></i> Latihan Dictation (Tulis apa yang Anda dengar)
+                        </span>
+                        <button onclick="checkDictation()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                            Cek Akurasi Ketikan
+                        </button>
+                    </div>
+                    <textarea id="dictationInput" rows="2" placeholder="Sembunyikan teks di atas, klik Play, lalu ketik ulang kalimat yang Anda dengar di sini..."
+                        class="w-full p-2.5 text-sm border border-amber-300 rounded-lg bg-white focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+                    <div id="dictationResult" class="hidden text-xs p-2.5 rounded-lg bg-white border border-amber-200"></div>
+                </div>
+            </section>
+
+            <!-- Step 4: Speaking & Pronunciation Practice -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">4</span>
+                        Speaking & Pronunciation Challenge
+                    </h2>
+                    <span class="text-xs text-slate-400">Gunakan Chrome / Edge untuk pengenalan suara optimal</span>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between text-xs text-slate-500">
+                        <span>Kalimat Target (<span id="sentenceIndexDisplay">1</span>/<span id="sentenceTotalDisplay">1</span>):</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="prevSentence()" class="px-2.5 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button onclick="speakCurrentSentence()" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded hover:bg-indigo-100 font-medium"><i class="fa-solid fa-volume-low"></i> Dengar Contoh</button>
+                            <button onclick="nextSentence()" class="px-2.5 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <p id="targetSentenceBox" class="text-base font-medium text-slate-800 bg-white p-3.5 rounded-lg border border-slate-200"></p>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button id="micBtn" onclick="startSpeechRecognition()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition">
+                            <i class="fa-solid fa-microphone"></i>
+                            <span id="micBtnText">Mulai Bicara (Read Aloud)</span>
+                        </button>
+                        <div id="speechScoreBadge" class="hidden text-xs font-bold px-3 py-1.5 rounded-lg"></div>
+                    </div>
+
+                    <div id="speechTranscriptBox" class="hidden text-xs bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                        <span class="text-slate-400 font-semibold uppercase block">Terdeteksi dari suara Anda:</span>
+                        <p id="speechTranscriptText" class="text-sm text-slate-700 font-medium"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 5: Writing & AI Grammar Coach -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-4">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-bold">5</span>
+                    Active Writing & AI Grammar Coach
+                </h2>
+                <p class="text-xs text-slate-500">
+                    Buatlah 1–2 kalimat Anda sendiri menggunakan kosakata target di atas. AI akan mengoreksi <i>grammar</i> sekaligus memberikan versi yang lebih natural seperti <i>native speaker</i>.
+                </p>
+
+                <textarea id="userWritingInput" rows="3" placeholder="Tulis kalimat latihan Anda dalam bahasa Inggris di sini..."
+                    class="w-full p-3.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+
+                <div class="flex justify-end">
+                    <button id="checkWritingBtn" onclick="evaluateWriting()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-spell-check"></i>
+                        <span>Koreksi & Tingkatkan Tulisan Saya</span>
+                    </button>
+                </div>
+
+                <!-- Writing Feedback Output -->
+                <div id="writingFeedbackBox" class="hidden bg-emerald-50/60 border border-emerald-200 rounded-xl p-4 space-y-3 text-sm">
+                    <div>
+                        <span class="text-xs font-bold uppercase text-emerald-800 block mb-1">1. Koreksi Tata Bahasa (Grammar Fix):</span>
+                        <p id="fbCorrection" class="text-slate-800 bg-white p-2.5 rounded-lg border border-emerald-100"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold uppercase text-indigo-800 block mb-1">2. Versi Lebih Natural / Profesional (Native Upgrade):</span>
+                        <p id="fbNative" class="text-indigo-950 font-medium bg-white p-2.5 rounded-lg border border-indigo-100"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold uppercase text-slate-600 block mb-1">3. Penjelasan Singkat:</span>
+                        <p id="fbExplanation" class="text-xs text-slate-700 leading-relaxed"></p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- API Key Modal -->
+    <div id="apiModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Konfigurasi Gemini API Key
+                </h3>
+                <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                API Key disimpan secara lokal di <i>browser</i> Anda (`localStorage`) dan tidak pernah dikirim ke server pihak ketiga selain Google Gemini API.
+            </p>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Gemini API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="toggleApiModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+                <button onclick="saveApiKey()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Simpan Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vocab Bank Modal -->
+    <div id="vocabModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-indigo-600"></i> Personal Vocab Bank
+                </h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportVocabCSV()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium">
+                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                    </button>
+                    <button onclick="toggleVocabModal()" class="text-slate-400 hover:text-slate-600 px-2"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div id="vocabBankList" class="overflow-y-auto py-4 space-y-2.5 flex-grow text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- State & Initialization ---
+        let currentLessonData = null;
+        let storySentences = [];
+        let currentSentenceIdx = 0;
+
+        const MODELS = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash"
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateApiStatus();
+            updateSavedCount();
+            if (!localStorage.getItem('gemini_english_api_key')) {
+                toggleApiModal();
+            }
+        });
+
+        // --- API Key Management ---
+        function toggleApiModal() {
+            const modal = document.getElementById('apiModal');
+            const input = document.getElementById('apiKeyInput');
+            if (modal.classList.contains('hidden')) {
+                input.value = localStorage.getItem('gemini_english_api_key') || '';
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) return alert("Masukkan API Key terlebih dahulu.");
+            localStorage.setItem('gemini_english_api_key', key);
+            updateApiStatus();
+            toggleApiModal();
+        }
+
+        function updateApiStatus() {
+            const key = localStorage.getItem('gemini_english_api_key');
+            const statusText = document.getElementById('apiStatusText');
+            if (key) {
+                statusText.textContent = "API Key Aktif";
+            } else {
+                statusText.textContent = "Set API Key";
+            }
+        }
+
+        function fillSampleWords() {
+            document.getElementById('vocabInput').value = "mitigate, feasibility, discrepancy, scrutinize, prudent";
+            document.getElementById('themeSelect').value = "Corporate, Finance & Credit Analysis";
+        }
+
+        // --- Gemini API Caller with Auto-Fallback ---
+        async function callGeminiWithFallback(promptText, isJson = true) {
+            const apiKey = localStorage.getItem('gemini_english_api_key');
+            if (!apiKey) {
+                toggleApiModal();
+                throw new Error("API Key belum diatur.");
+            }
+
+            let lastError = null;
+            for (const model of MODELS) {
+                try {
+                    document.getElementById('loadingSub').textContent = `Memproses dengan model ${model}...`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    
+                    const bodyPayload = {
+                        contents: [{ parts: [{ text: promptText }] }],
+                        generationConfig: {
+                            temperature: 0.7
+                        }
+                    };
+                    if (isJson) {
+                        bodyPayload.generationConfig.responseMimeType = "application/json";
+                    }
+
+                    const res = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(bodyPayload)
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        throw new Error(errData.error?.message || `HTTP ${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!rawText) throw new Error("Respons kosong dari AI.");
+
+                    document.getElementById('modelUsedIndicator').textContent = `Model aktif: ${model}`;
+                    return isJson ? JSON.parse(rawText) : rawText;
+
+                } catch (err) {
+                    console.warn(`Gagal dengan ${model}:`, err.message);
+                    lastError = err;
+                }
+            }
+            throw new Error(`Semua model gagal merespons: ${lastError?.message}`);
+        }
+
+        // --- Step 1 & 2: Generate Lesson ---
+        async function generateLesson() {
+            const words = document.getElementById('vocabInput').value.trim();
+            const theme = document.getElementById('themeSelect').value;
+            const level = document.getElementById('levelSelect').value;
+
+            if (!words) return alert("Silakan masukkan minimal 1–3 kata target terlebih dahulu.");
+
+            document.getElementById('loadingBox').classList.remove('hidden');
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = true;
+
+            const prompt = `
+You are an expert English language coach for Indonesian learners.
+Target vocabulary/phrases: "${words}"
+Context/Theme: "${theme}"
+Difficulty Level: "${level}"
+
+Generate a structured English learning session in valid JSON format with the exact schema below:
+{
+  "glossary": [
+    {
+      "word": "target word/phrase",
+      "pos": "part of speech (noun/verb/adj/phrase)",
+      "ipa": "phonetic pronunciation",
+      "meaning_id": "accurate contextual Indonesian meaning",
+      "collocation": "common natural collocation or phrase",
+      "example": "one clear example sentence"
+    }
+  ],
+  "story_en": "A cohesive, realistic 4 to 6 sentence short paragraph or dialogue incorporating ALL target words naturally in the requested theme and level. Do not use markdown asterisks.",
+  "story_id": "Natural Indonesian translation of story_en"
+}`;
+
+            try {
+                const result = await callGeminiWithFallback(prompt, true);
+                currentLessonData = result;
+                renderWorkspace(result);
+            } catch (err) {
+                alert("Terjadi kesalahan: " + err.message);
+            } finally {
+                document.getElementById('loadingBox').classList.add('hidden');
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function renderWorkspace(data) {
+            // Render Glossary
+            const grid = document.getElementById('glossaryGrid');
+            grid.innerHTML = '';
+            data.glossary.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold text-indigo-700 text-base">${item.word}</span>
+                            <span class="text-xs text-slate-400 ml-1.5">(${item.pos}) • ${item.ipa || ''}</span>
+                        </div>
+                        <button onclick="speakText('${item.word.replace(/'/g, "\\'")}', 0.9)" class="text-slate-500 hover:text-indigo-600 p-1" title="Dengar pelafalan">
+                            <i class="fa-solid fa-volume-high text-xs"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-800">${item.meaning_id}</p>
+                    <p class="text-xs text-slate-600"><span class="font-medium text-slate-500">Frasa umum:</span> <i>${item.collocation}</i></p>
+                    <p class="text-xs text-slate-500 pt-1 border-t border-slate-200/70">"${item.example}"</p>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Highlight target words in Story
+            let highlightedStory = data.story_en;
+            data.glossary.forEach(item => {
+                const regex = new RegExp(`\\b(${item.word})\\b`, 'gi');
+                highlightedStory = highlightedStory.replace(regex, '<mark class="bg-indigo-100 text-indigo-900 font-semibold px-1 rounded">$1</mark>');
+            });
+
+            const storyEl = document.getElementById('storyText');
+            storyEl.innerHTML = highlightedStory;
+            storyEl.classList.add('revealed');
+            document.getElementById('toggleBlurBtn').innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks (Mode Listening)';
+            document.getElementById('storyTranslation').textContent = "Terjemahan: " + data.story_id;
+
+            // Reset Dictation & Writing
+            document.getElementById('dictationInput').value = '';
+            document.getElementById('dictationResult').classList.add('hidden');
+            document.getElementById('userWritingInput').value = '';
+            document.getElementById('writingFeedbackBox').classList.add('hidden');
+
+            // Setup Speaking Sentences
+            storySentences = data.story_en.match(/[^.!?]+[.!?]+/g) || [data.story_en];
+            storySentences = storySentences.map(s => s.trim()).filter(s => s.length > 0);
+            currentSentenceIdx = 0;
+            updateSpeakingBox();
+
+            document.getElementById('workspace').classList.remove('hidden');
+        }
+
+        // --- Step 3: Audio & Dictation ---
+        function speakText(text, rate = 1.0) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = document.getElementById('voiceAccent').value;
+            utterance.rate = rate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakStory(rate) {
+            if (!currentLessonData) return;
+            speakText(currentLessonData.story_en, rate);
+        }
+
+        function stopSpeech() {
+            window.speechSynthesis.cancel();
+        }
+
+        function toggleBlurStory() {
+            const el = document.getElementById('storyText');
+            const btn = document.getElementById('toggleBlurBtn');
+            if (el.classList.contains('revealed')) {
+                el.classList.remove('revealed');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i> Tampilkan Teks';
+            } else {
+                el.classList.add('revealed');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Sembunyikan Teks (Mode Listening)';
+            }
+        }
+
+        function checkDictation() {
+            if (!currentLessonData) return;
+            const userText = document.getElementById('dictationInput').value.trim();
+            if (!userText) return alert("Ketik hasil pendengaran Anda terlebih dahulu.");
+
+            const clean = str => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "").split(/\s+/).filter(Boolean);
+            const targetWords = clean(currentLessonData.story_en);
+            const userWords = clean(userText);
+
+            let matched = 0;
+            userWords.forEach(w => {
+                if (targetWords.includes(w)) matched++;
+            });
+
+            const score = Math.min(100, Math.round((matched / targetWords.length) * 100));
+            const resBox = document.getElementById('dictationResult');
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold text-slate-800">Skor Kemiripan Kata: ${score}%</span>
+                    <span class="text-slate-500">(${matched} dari ${targetWords.length} kata cocok)</span>
+                </div>
+                <p class="text-slate-600"><b>Teks Asli:</b> ${currentLessonData.story_en}</p>
+            `;
+        }
+
+        // --- Step 4: Speaking & Pronunciation ---
+        function updateSpeakingBox() {
+            document.getElementById('sentenceIndexDisplay').textContent = currentSentenceIdx + 1;
+            document.getElementById('sentenceTotalDisplay').textContent = storySentences.length;
+            document.getElementById('targetSentenceBox').textContent = storySentences[currentSentenceIdx] || '';
+            document.getElementById('speechTranscriptBox').classList.add('hidden');
+            document.getElementById('speechScoreBadge').classList.add('hidden');
+        }
+
+        function prevSentence() {
+            if (currentSentenceIdx > 0) {
+                currentSentenceIdx--;
+                updateSpeakingBox();
+            }
+        }
+
+        function nextSentence() {
+            if (currentSentenceIdx < storySentences.length - 1) {
+                currentSentenceIdx++;
+                updateSpeakingBox();
+            }
+        }
+
+        function speakCurrentSentence() {
+            speakText(storySentences[currentSentenceIdx], 0.9);
+        }
+
+        function startSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                return alert("Browser Anda belum mendukung fitur Speech Recognition. Gunakan Google Chrome atau Microsoft Edge.");
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = document.getElementById('voiceAccent').value;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            const micBtn = document.getElementById('micBtn');
+            const micText = document.getElementById('micBtnText');
+
+            recognition.onstart = () => {
+                micBtn.classList.add('pulse-mic');
+                micText.textContent = "Mendengarkan... Silakan bicara";
+            };
+
+            recognition.onresult = (event) => {
+                const spoken = event.results[0][0].transcript;
+                evaluatePronunciation(spoken);
+            };
+
+            recognition.onerror = (event) => {
+                alert("Gagal menangkap suara: " + event.error);
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('pulse-mic');
+                micText.textContent = "Mulai Bicara (Read Aloud)";
+            };
+
+            recognition.start();
+        }
+
+        function evaluatePronunciation(spokenText) {
+            const target = storySentences[currentSentenceIdx];
+            const clean = str => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "").split(/\s+/).filter(Boolean);
+            
+            const targetArr = clean(target);
+            const spokenArr = clean(spokenText);
+
+            let hits = 0;
+            targetArr.forEach(word => {
+                if (spokenArr.includes(word)) hits++;
+            });
+
+            const accuracy = Math.round((hits / targetArr.length) * 100);
+            const badge = document.getElementById('speechScoreBadge');
+            badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800');
+            
+            if (accuracy >= 80) {
+                badge.classList.add('bg-emerald-100', 'text-emerald-800');
+                badge.textContent = `Akurasi Pelafalan: ${accuracy}% (Bagus!)`;
+            } else {
+                badge.classList.add('bg-amber-100', 'text-amber-800');
+                badge.textContent = `Akurasi Pelafalan: ${accuracy}% (Coba ulangi lebih jelas)`;
+            }
+
+            document.getElementById('speechTranscriptText').textContent = `"${spokenText}"`;
+            document.getElementById('speechTranscriptBox').classList.remove('hidden');
+        }
+
+        // --- Step 5: Writing Evaluation ---
+        async function evaluateWriting() {
+            const userSentence = document.getElementById('userWritingInput').value.trim();
+            if (!userSentence) return alert("Tulis kalimat latihan Anda terlebih dahulu.");
+
+            const btn = document.getElementById('checkWritingBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengevaluasi...';
+
+            const targetWords = currentLessonData ? currentLessonData.glossary.map(g => g.word).join(', ') : '';
+
+            const prompt = `
+You are an English writing coach for an Indonesian learner.
+Target vocabulary context: "${targetWords}"
+Student's sentence: "${userSentence}"
+
+Evaluate the student's sentence and return valid JSON with this exact structure:
+{
+  "correction": "Corrected version fixing grammar, spelling, and preposition errors (or praise if already perfect)",
+  "native_upgrade": "A more natural, idiomatic, or professional native-speaker way to express the exact same idea",
+  "explanation_id": "Clear, concise explanation in Indonesian about what was fixed and why the native upgrade sounds better"
+}`;
+
+            try {
+                const feedback = await callGeminiWithFallback(prompt, true);
+                document.getElementById('fbCorrection').textContent = feedback.correction;
+                document.getElementById('fbNative').textContent = feedback.native_upgrade;
+                document.getElementById('fbExplanation').textContent = feedback.explanation_id;
+                document.getElementById('writingFeedbackBox').classList.remove('hidden');
+            } catch (err) {
+                alert("Gagal mengevaluasi tulisan: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-spell-check"></i> <span>Koreksi & Tingkatkan Tulisan Saya</span>';
+            }
+        }
+
+        // --- Personal Vocab Bank (LocalStorage + CSV Export) ---
+        function getSavedVocab() {
+            return JSON.parse(localStorage.getItem('ai_english_vocab_bank') || '[]');
+        }
+
+        function saveAllVocab() {
+            if (!currentLessonData || !currentLessonData.glossary) return;
+            const existing = getSavedVocab();
+            let added = 0;
+
+            currentLessonData.glossary.forEach(item => {
+                if (!existing.some(e => e.word.toLowerCase() === item.word.toLowerCase())) {
+                    existing.unshift({
+                        ...item,
+                        savedAt: new Date().toLocaleDateString('id-ID')
+                    });
+                    added++;
+                }
+            });
+
+            localStorage.setItem('ai_english_vocab_bank', JSON.stringify(existing));
+            updateSavedCount();
+            alert(`${added} kosakata baru berhasil disimpan ke Vocab Bank!`);
+        }
+
+        function updateSavedCount() {
+            document.getElementById('savedCount').textContent = getSavedVocab().length;
+        }
+
+        function toggleVocabModal() {
+            const modal = document.getElementById('vocabModal');
+            if (modal.classList.contains('hidden')) {
+                renderVocabBank();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderVocabBank() {
+            const list = document.getElementById('vocabBankList');
+            const items = getSavedVocab();
+            if (items.length === 0) {
+                list.innerHTML = '<p class="text-center text-slate-400 py-8">Belum ada kosakata yang disimpan.</p>';
+                return;
+            }
+
+            list.innerHTML = items.map((item, idx) => `
+                <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 flex justify-between items-start gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-indigo-700">${item.word}</span>
+                            <span class="text-xs text-slate-400">(${item.pos})</span>
+                            <span class="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">${item.savedAt || ''}</span>
+                        </div>
+                        <p class="text-xs font-medium text-slate-800 mt-0.5">${item.meaning_id}</p>
+                        <p class="text-xs text-slate-500 italic mt-0.5">"${item.example}"</p>
+                    </div>
+                    <button onclick="deleteVocab(${idx})" class="text-slate-400 hover:text-rose-600 p-1" title="Hapus">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteVocab(index) {
+            const items = getSavedVocab();
+            items.splice(index, 1);
+            localStorage.setItem('ai_english_vocab_bank', JSON.stringify(items));
+            updateSavedCount();
+            renderVocabBank();
+        }
+
+        function exportVocabCSV() {
+            const items = getSavedVocab();
+            if (items.length === 0) return alert("Vocab Bank masih kosong.");
+
+            const headers = ["Word", "Part of Speech", "Meaning (ID)", "Collocation", "Example Sentence", "Date Saved"];
+            const rows = items.map(i => [
+                `"${i.word}"`,
+                `"${i.pos}"`,
+                `"${i.meaning_id}"`,
+                `"${i.collocation}"`,
+                `"${i.example.replace(/"/g, '""')}"`,
+                `"${i.savedAt || ''}"`
+            ]);
+
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Personal_English_Vocab_Bank.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
